@@ -61,6 +61,17 @@
     .stage .sub{font:italic 400 clamp(24px,2.5vw,44px) var(--serif);color:var(--amber);margin:0}
     .stage .by{font:500 clamp(17px,1.2vw,24px) var(--sans);color:var(--soft);margin:1.6em 0 0}
     #title.out{opacity:0}
+    #title.out .start{pointer-events:none}
+    /* the start button: the one thing to press when the page opens */
+    .start{pointer-events:auto;margin-top:1.8em;display:inline-flex;align-items:center;gap:.7em;padding:.75em 1.6em .75em 1.2em;border-radius:999px;cursor:pointer;
+      font:700 clamp(20px,1.7vw,32px) var(--sans);color:#1a1206;background:var(--amber);border:0;
+      box-shadow:0 0 0 0 rgba(255,198,90,.6),0 10px 40px rgba(255,198,90,.35);animation:startpulse 2.2s ease-out infinite;transition:transform .2s}
+    .start:hover{transform:scale(1.05)}
+    .start:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+    .start-dot{width:.7em;height:.7em;border-radius:50%;background:#1a1206;clip-path:polygon(15% 0,100% 50%,15% 100%)}
+    .start-note{margin:1em 0 0;font:500 clamp(15px,1.05vw,20px) var(--sans);color:var(--soft)}
+    @keyframes startpulse{0%{box-shadow:0 0 0 0 rgba(255,198,90,.55),0 10px 40px rgba(255,198,90,.35)}100%{box-shadow:0 0 0 22px rgba(255,198,90,0),0 10px 40px rgba(255,198,90,.35)}}
+    @media (prefers-reduced-motion:reduce){.start{animation:none}}
     #closing{opacity:0}
     #closing.on{opacity:1}
     #closing h1{font-size:clamp(44px,6vw,108px)}
@@ -81,6 +92,8 @@
     <h1>A Winter's Night<br>in Limerick</h1>
     <p class="sub">Eight windows. One evening. AI, quietly helping.</p>
     <p class="by">Dr Boxi Yu · Lero, University of Limerick</p>
+    <button type="button" id="start" class="start"><span class="start-dot" aria-hidden="true"></span>Click to begin</button>
+    <p class="start-note">Turn your sound on · it opens in full screen · press → to go on</p>
   </section>
   <section id="closing" class="stage" aria-live="polite">
     <p class="kicker">Eight windows, one winter's night</p>

@@ -299,6 +299,7 @@ let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600); }
 addEventListener('keydown', (e) => {
   const k = e.key;
+  if (e.target?.id === 'start' && (k === 'Enter' || k === ' ')) return;     // the button's own click handles these
   if (e.target?.tagName === 'INPUT') { if (k === 'Enter') { e.preventDefault(); next(); } else if (k === 'Escape') e.target.blur(); return; }
   if (notes.open && !/^[nN]$/.test(k)) return;
   if (NEXT.includes(k)) { e.preventDefault(); next(); }
@@ -318,6 +319,13 @@ addEventListener('keydown', (e) => {
 });
 canvasClick();
 function canvasClick() { $('#gl').addEventListener('click', () => { if (state === 'intro') next(); }); }
+// the start button: full screen (where the browser allows it), then the narrator's opening
+$('#start')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  try { document.documentElement.requestFullscreen?.()?.catch?.(() => {}); } catch { /* not allowed here: fine */ }
+  if (state === 'intro') next();
+});
+if (!STILL) requestAnimationFrame(() => $('#start')?.focus({ preventScroll: true }));
 
 // ---------- loop ----------
 function resize() {
