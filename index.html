@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05080f">
+  <meta name="description" content="AI for All: one winter's night in Limerick, eight lit windows, and the everyday ways AI quietly helps. An immersive 3D talk by Dr Boxi Yu, Lero, University of Limerick, at Limerick City Library.">
+  <title>AI for All · Limerick</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="limerick.css">
+  <style>
+    /* hotspot: a soft cyan ring with an amber label; visited places turn amber */
+    .spot{position:fixed;left:0;top:0;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:10px;
+      background:none;border:0;padding:0;cursor:pointer;color:var(--ink);font:inherit;transition:opacity .5s}
+    .spot i{width:40px;height:40px;border-radius:50%;border:2px solid var(--cyan);box-shadow:0 0 18px rgba(143,233,255,.45);position:relative}
+    .spot i::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--cyan);animation:ping 2.4s ease-out infinite}
+    @keyframes ping{from{transform:scale(1);opacity:.8}to{transform:scale(2.1);opacity:0}}
+    .spot .ui-chip{transition:transform .3s,border-color .3s;font-size:clamp(16px,1.1vw,24px)}
+    .spot .ui-chip small{font:700 .8em var(--sans);opacity:.75}
+    .spot:hover .ui-chip,.spot:focus-visible .ui-chip{transform:scale(1.08)}
+    .spot.visited i,.spot.visited i::after{border-color:var(--amber);box-shadow:0 0 18px rgba(255,198,90,.5)}
+    .spot.visited i::after{animation:none;opacity:0}
+    .spot.off{opacity:0;pointer-events:none}
+    .spot:focus{outline:none}.spot:focus-visible i{outline:2px solid var(--amber);outline-offset:6px}
+    @media (prefers-reduced-motion:reduce){.spot i::after{animation:none}}
+
+    /* portal: starts as the lit window, grows to full screen, then hands over to the video */
+    #portal{position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;z-index:3;background:#05080f;
+      box-shadow:0 0 60px rgba(255,217,160,.35)}
+    #portal.grow{transition:left 1.5s cubic-bezier(.65,0,.35,1),top 1.5s cubic-bezier(.65,0,.35,1),width 1.5s cubic-bezier(.65,0,.35,1),
+      height 1.5s cubic-bezier(.65,0,.35,1),border-radius 1.5s cubic-bezier(.65,0,.35,1),opacity .5s,box-shadow 1.5s}
+    #portal.full{box-shadow:none}
+    #portal img,#portal video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--focus,50% 50%)}
+    #portal video{opacity:0}
+    #portal.playing video{opacity:1}
+    /* no video yet: a slow push-in on the still so the picture still feels alive */
+    #portal.kb img{animation:kb 14s ease-out forwards}
+    @keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
+    @media (prefers-reduced-motion:reduce){#portal.kb img{animation:none}}
+
+    /* narration caption: above the card position, big and calm */
+    #cap{z-index:4;opacity:0;bottom:max(6vh,30px);font-size:clamp(24px,2.2vw,42px)}
+    #cap.on{opacity:1}
+    .nocap #cap{opacity:0!important}
+
+    #card{position:fixed;left:50%;bottom:max(7vh,36px);transform:translate(-50%,12px);opacity:0;transition:opacity .8s,transform .8s;z-index:4;
+      max-width:min(900px,88vw);pointer-events:none}
+    #card.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+    #card .ui-line{font-family:var(--serif);font-size:clamp(28px,2.6vw,48px)}
+    #card .ui-src{display:flex;justify-content:space-between;gap:24px;font-size:clamp(16px,1vw,20px)}
+    #card button{background:none;border:0;color:var(--amber);font:inherit;cursor:pointer;padding:0;white-space:nowrap}
+
+    #hint{position:fixed;left:50%;bottom:max(5vh,28px);transform:translateX(-50%);margin:0;font:italic 500 clamp(22px,2vw,36px) var(--serif);
+      text-shadow:0 2px 8px #000;transition:opacity .6s;text-align:center;width:min(1100px,90vw)}
+    #hint.out{opacity:0}
+
+    /* title and closing line */
+    .stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5vh 6vw;
+      pointer-events:none;transition:opacity 1.4s ease;background:radial-gradient(55% 45% at 50% 48%,rgba(3,6,14,.62),transparent)}
+    .stage .kicker{font:700 clamp(15px,1.1vw,20px) var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--soft);margin:0}
+    .stage h1{font:600 clamp(48px,7vw,124px)/1.02 var(--serif);margin:.12em 0 .2em;text-shadow:0 4px 40px rgba(0,0,0,.8)}
+    .stage .sub{font:italic 400 clamp(24px,2.5vw,44px) var(--serif);color:var(--amber);margin:0}
+    .stage .by{font:500 clamp(17px,1.2vw,24px) var(--sans);color:var(--soft);margin:1.6em 0 0}
+    #title.out{opacity:0}
+    #closing{opacity:0}
+    #closing.on{opacity:1}
+    #closing h1{font-size:clamp(44px,6vw,108px)}
+    .stage .by.made{font-size:clamp(15px,1vw,19px);margin-top:.8em;opacity:.8}
+    .hide-ui #try,.hide-ui .stage,.hide-ui #card,.hide-ui #hint,.hide-ui #spots,.hide-ui #cap{opacity:0!important}
+    #try{opacity:0;transition:opacity .5s}#try.on{opacity:1}
+    #try.carded .tp-chat{max-height:46%}#try.carded .tp-steps{opacity:.0}
+    #check-out{position:fixed;inset:auto 0 0 0;max-height:40vh;overflow:auto;background:#000;color:#9f9;font:12px var(--mono);z-index:9;margin:0}
+  </style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+  <script type="module" src="limerick/explore.js" onerror="window.__bootError && window.__bootError('the talk files could not be loaded')"></script>
+</head>
+<body data-windows>
+  <canvas id="gl" aria-label="A 3D night scene of Limerick on the River Shannon, with eight lit windows that can be opened."></canvas>
+  <div id="spots"></div>
+  <section id="title" class="stage" aria-live="polite">
+    <p class="kicker">AI for All · Limerick City Library</p>
+    <h1>A Winter's Night<br>in Limerick</h1>
+    <p class="sub">Eight windows. One evening. AI, quietly helping.</p>
+    <p class="by">Dr Boxi Yu · Lero, University of Limerick</p>
+  </section>
+  <section id="closing" class="stage" aria-live="polite">
+    <p class="kicker">Eight windows, one winter's night</p>
+    <h1>Let it help.<br>Keep the judgement.</h1>
+    <p class="by">Free help to start: AIReady.ie · ask at your library</p>
+    <p class="by made">The pictures and the narrator's voice tonight were made with AI (Nano Banana Pro and Gemini). The conversations are prepared examples.</p>
+  </section>
+  <p id="hint" class="out"></p>
+  <div id="portal" aria-hidden="true">
+    <img alt="">
+    <video playsinline preload="auto"></video>
+  </div>
+  <div id="try" aria-live="polite"></div>
+  <div id="journey" aria-live="polite"></div>
+  <p id="cap" role="status" aria-live="polite"></p>
+  <div id="card" class="ui-card" role="status" aria-live="polite">
+    <p class="ui-kicker"></p>
+    <p class="ui-line"></p>
+    <p class="ui-src"><span></span><button type="button" id="back">Back to the city · ←</button></p>
+  </div>
+  <div id="fade" aria-hidden="true"></div>
+  <div id="black" aria-hidden="true"></div>
+  <p id="toast" aria-live="polite"></p>
+  <p id="loading">Building Limerick…</p>
+  <script>
+    // Boot watchdog: if the 3D talk cannot start (WebGL off, opened as a file, server not running), say so.
+    (function () {
+      var shown = false;
+      function fail(msg) {
+        if (shown) return; var el = document.getElementById('loading'); if (!el || el.classList.contains('gone')) return; shown = true;
+        el.innerHTML = '<span style="max-width:760px;padding:24px;text-align:center;line-height:1.5">The talk could not start.<br><small style="font:15px system-ui;opacity:.8">' +
+          (location.protocol === 'file:' ? 'It was opened as a file. Open it from its web address instead' : (msg || 'Check that WebGL is enabled, then reload.')) + '</small></span>';
+      }
+      window.__bootError = function (e) { fail(String(e && e.message || e)); };
+      addEventListener('error', function (e) { fail(e.message); });
+      addEventListener('unhandledrejection', function (e) { fail(e.reason && e.reason.message); });
+      setTimeout(function () { if (!window.__booted) fail('It is taking unusually long. Reload, or check the browser console.'); }, 45000);
+    })();
+  </script>
+  <noscript><p style="padding:40px;color:#fff">This talk needs JavaScript and WebGL.</p></noscript>
+
+  <dialog id="notes" aria-labelledby="notes-h"><button class="x" data-close aria-label="Close">×</button>
+    <h2 id="notes-h">Notes</h2><div id="notes-body"></div>
+    <p class="fine">Keys: → / Space / PageDown next · ← back · 1–8 a window · J the journey behind the windows · 0 overview · V narration on/off · C captions on/off · N notes · B black screen · H hide text · F full screen · Home restart. Everything is prepared in advance and runs offline; nothing calls a live AI model.</p></dialog>
+</body>
+</html>
